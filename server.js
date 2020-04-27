@@ -1,42 +1,64 @@
-const chalk = require('chalk');
+const openingGraphics = require('./lib/openingGraphics');
+var mysql = require("mysql");
+var inquirer = require("inquirer");
 const clear = require('clear');
-const figlet = require('figlet');
-const Table = require('cli-table');
 
 
+// create the connection information for the sql database
+var connection = mysql.createConnection({
+    host: "localhost",
 
-clear();
+    // Your port; if not 3306
+    port: 3306,
 
+    // Your username
+    user: "root",
 
+    // Your password
+    password: "",
+    database: "employeesDB"
+});
 
-// console.log(title);
-// console.log(subtitle);
-
-var table = new Table({
-    chars: { 'top': '═' , 'top-mid': '╤' , 'top-left': '╔' , 'top-right': '╗'
-           , 'bottom': '═' , 'bottom-mid': '╧' , 'bottom-left': '╚' , 'bottom-right': '╝'
-           , 'left': '║' , 'left-mid': '╟' , 'mid': '─' , 'mid-mid': '┼'
-           , 'right': '║' , 'right-mid': '╢' , 'middle': '│' }
-  });
-
-  let title = chalk.redBright(
-    figlet.textSync('E-Tracker', { horizontalLayout: 'fitted' })
-  );
-
-let subtitle = chalk.yellow("         An Employee Management Solution.");
+// connect to the mysql server and sql database
+connection.connect(function (err) {
+    if (err) throw err;
+    // run the start function after the connection is made to prompt the user
+    openingGraphics();
+    initialQuestions();
    
-  table.push(
-      [title]
-    , [subtitle]
-  );
+});
 
-  let finalTable = table.toString();
-   
-  console.log(finalTable);
+function initialQuestions() {
+    inquirer
+    .prompt({
+        name: "initialChoice",
+        type: "list",
+        message: "Select one of the following",
+        choices: ["View all employees.",
+            "Done"
+        ]
+    })
+    .then(function (answer) {
+        // based on their answer, either call the bid or the post functions
+        if (answer.initialChoice === "View all employees.") {
+            viewAllEmp();
+        }
+     
+        else {
+            clear();
+        }
+    });
 
+}
 
+function viewAllEmp() {
 
+    clear(); 
+    connection.query("SELECT * FROM employeesDB.employee", function (err, res) {
 
+        if (err) throw err;
+        console.log(res)
+    });
 
-    
-
+    initialQuestions();
+}
