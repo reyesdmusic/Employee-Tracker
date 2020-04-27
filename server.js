@@ -2,6 +2,8 @@ const openingGraphics = require('./lib/openingGraphics');
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 const clear = require('clear');
+const Table = require('cli-table');
+const chalk = require('chalk');
 
 
 // create the connection information for the sql database
@@ -53,12 +55,32 @@ function initialQuestions() {
 
 function viewAllEmp() {
 
-    clear(); 
-    connection.query("SELECT * FROM employeesDB.employee", function (err, res) {
+    
+    connection.query("SELECT e.id, e.first_name, e.last_name, title, salary, name, m.first_name AS ? , m.last_name AS ? FROM employee e JOIN role r ON e.role_id = r.id JOIN department d ON r.department_id = d.id LEFT JOIN employee m on e.manager_id = m.id;", ["manager_first_name", "manager_last_name"], function (err, res) {
 
         if (err) throw err;
-        console.log(res)
-    });
+        clear(); 
 
-    initialQuestions();
+        var table = new Table({
+            chars: { 'top': '═' , 'top-mid': '╤' , 'top-left': '╔' , 'top-right': '╗'
+                   , 'bottom': '═' , 'bottom-mid': '╧' , 'bottom-left': '╚' , 'bottom-right': '╝'
+                   , 'left': '║' , 'left-mid': '╟' , 'mid': '─' , 'mid-mid': '┼'
+                   , 'right': '║' , 'right-mid': '╢' , 'middle': '│' }
+          });
+          
+          let tableHeaders = [chalk.blueBright("ID"), chalk.blueBright("First Name"), chalk.blueBright("Last Name"), chalk.blueBright("Title"), chalk.blueBright("Department"), chalk.blueBright("Salary"), chalk.blueBright("Manager")];
+          table.push(tableHeaders);
+
+          for (var i = 0; i < res.length; i++) {
+            table.push([res[i].id, res[i].first_name, res[i].last_name, res[i].title, res[i].name, res[i].salary, res[i].manager_first_name + " " + res[i].manager_last_name]);
+            }
+        
+          let finalTable = table.toString();
+           console.log("");
+          console.log(finalTable);
+          initialQuestions();
+        
+    })
+
+  
 }
