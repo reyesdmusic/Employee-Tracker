@@ -12,66 +12,55 @@ CREATE TABLE employee(
   PRIMARY KEY (id)
 );
 
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Tony", "Albertson", 1);
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Tony", "Albertson", 1, 4);
 
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Toby", "McDermott", 1);
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Toby", "McDermott", 1, 4);
 
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Olga", "Pavlova", 1);
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Olga", "Pavlova", 1, 4);
 
 INSERT INTO employee (first_name, last_name, role_id)
 VALUES ("Maria","De la Costa", 2);
 
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Alex", "Bienvenue", 3);
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Alex", "Bienvenue", 3, 8);
 
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Miguel", "Suarez", 3);
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Miguel", "Suarez", 3, 8);
 
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Rebekah", "Glass", 3);
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Rebekah", "Glass", 3, 8);
 
 INSERT INTO employee (first_name, last_name, role_id)
 VALUES ("Richard", "Smith", 4);
 
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Christina", "Lang", 5);
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Christina", "Lang", 5, 12);
 
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Michael", "Zhou", 5);
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Michael", "Zhou", 5, 12);
 
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Monica", "Brighton", 5);
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Monica", "Brighton", 5, 12);
 
 INSERT INTO employee (first_name, last_name, role_id)
 VALUES ("Ralph", "Vaughan Williams", 6);
 
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Mahler", "Gustav", 7);
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Mahler", "Gustav", 7, 16);
 
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Sondheim", "Stephen", 7);
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Sondheim", "Stephen", 7, 16);
 
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Guillermina", "Barroso-Orozco", 7);
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Guillermina", "Barroso-Orozco", 7, 16);
 
 INSERT INTO employee (first_name, last_name, role_id)
 VALUES ("Ignacio", "Barroso", 8);
 
 
-
-
-
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Kennedy", "Davenport",);
-
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Trixie", "Mattel", );
-
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Erin", "Sorvino", );
 
 CREATE TABLE department (
   id INT NOT NULL,
@@ -95,7 +84,7 @@ CREATE TABLE role (
   id INT NOT NULL,
   title VARCHAR(30) NOT NULL,
   salary DECIMAL(10, 2) NOT NULL,
-  department_id DECIMAL(10, 2) NOT NULL,
+  department_id INT NOT NULL,
   PRIMARY KEY (id)
 );
 

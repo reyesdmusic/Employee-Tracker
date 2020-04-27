@@ -35,6 +35,7 @@ function initialQuestions() {
         message: "Select one of the following",
         choices: ["View all employees.",
         "View all employees by department.",
+        "View all employees by manager.",
             "Done"
         ]
     })
@@ -46,6 +47,10 @@ function initialQuestions() {
 
         else if (answer.initialChoice === "View all employees by department.")  {
             viewByDept();
+        }
+
+        else if (answer.initialChoice === "View all employees by manager.")  {
+            viewByMgr();
         }
      
         else {
@@ -129,5 +134,67 @@ function viewByDept() {
         
     })
 })
-  
+
+}
+
+function viewByMgr() {
+
+    connection.query("SELECT m.first_name AS ? , m.last_name AS ? , m.id FROM employee e JOIN role r ON e.role_id = r.id JOIN department d ON r.department_id = d.id LEFT JOIN employee m on e.manager_id = m.id GROUP BY m.id;", ["manager_first_name", "manager_last_name"], function (err, res) {
+
+        if (err) throw err;
+      
+        let managerIdArray = [];
+        let managerChoicesArray = [];
+          for (var i = 0; i < res.length; i++) {
+              if (res[i].manager_first_name != null){
+            managerChoicesArray.push(res[i].manager_first_name + " " + res[i].manager_last_name);
+            managerIdArray.push(res[i].id);
+            }
+        }
+        
+        inquirer
+        .prompt({
+            name: "managerName",
+            type: "list",
+            message: "Ok, which manager?",
+            choices: managerChoicesArray
+            
+        })
+        .then(function(answer){
+            for (var i = 0; i < managerChoicesArray.length; i++){
+            if (answer.managerName === managerChoicesArray[i]) {
+                let managerID = managerIdArray[i];
+                connection.query("SELECT e.id, e.first_name, e.last_name, title, salary, name, m.first_name AS ? , m.last_name AS ? FROM employee e JOIN role r ON e.role_id = r.id JOIN department d ON r.department_id = d.id LEFT JOIN employee m on e.manager_id = m.id where m.id = ?;", ["manager_first_name", "manager_last_name", managerID], function (err, res) {
+
+                    if (err) throw err;
+        clear(); 
+
+        var table = new Table({
+            chars: { 'top': '═' , 'top-mid': '╤' , 'top-left': '╔' , 'top-right': '╗'
+                   , 'bottom': '═' , 'bottom-mid': '╧' , 'bottom-left': '╚' , 'bottom-right': '╝'
+                   , 'left': '║' , 'left-mid': '╟' , 'mid': '─' , 'mid-mid': '┼'
+                   , 'right': '║' , 'right-mid': '╢' , 'middle': '│' }
+          });
+          
+          let tableHeaders = [chalk.blueBright("ID"), chalk.blueBright("First Name"), chalk.blueBright("Last Name"), chalk.blueBright("Title"), chalk.blueBright("Department"), chalk.blueBright("Salary"), chalk.blueBright("Manager")];
+          table.push(tableHeaders);
+
+          for (var i = 0; i < res.length; i++) {
+            table.push([res[i].id, res[i].first_name, res[i].last_name, res[i].title, res[i].name, res[i].salary, res[i].manager_first_name + " " + res[i].manager_last_name]);
+            }
+        
+          let finalTable = table.toString();
+           console.log("");
+          console.log(finalTable);
+          initialQuestions();
+                    
+                   
+                    
+                })
+            }
+            }
+        })
+        
+    })
+
 }
