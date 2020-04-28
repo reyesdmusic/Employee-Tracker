@@ -41,6 +41,7 @@ function initialQuestions() {
         "Remove employee.",
         "Update employee role.",
         "Update employee manager.",
+        "See total labor cost by department.",
         "Done"
         ]
     })
@@ -72,6 +73,10 @@ function initialQuestions() {
 
         else if (answer.initialChoice === "Update employee manager.")  {
             updateManager();
+        }
+
+        else if (answer.initialChoice === "See total labor cost by department.")  {
+            laborCost();
         }
      
         else {
@@ -514,4 +519,53 @@ function updateManager() {
     })
 })
 })
+}
+
+function laborCost() {
+
+    clear();
+
+    inquirer
+    .prompt({
+        name: "deptName",
+        type: "list",
+        message: "Ok, which department?",
+        choices: ["Sales",
+        "Engineering",
+            "Finance",
+            "Legal"
+        ]
+    })
+
+    .then(function (answer) {
+
+    
+    connection.query("SELECT sum(salary) AS ? FROM employee e JOIN role r ON e.role_id = r.id JOIN department d ON r.department_id = d.id LEFT JOIN employee m on e.manager_id = m.id where name = ? ;", ["sum_salary", answer.deptName], function (err, res) {
+
+        if (err) throw err;
+        clear(); 
+
+        var table = new Table({
+            chars: { 'top': '═' , 'top-mid': '╤' , 'top-left': '╔' , 'top-right': '╗'
+                   , 'bottom': '═' , 'bottom-mid': '╧' , 'bottom-left': '╚' , 'bottom-right': '╝'
+                   , 'left': '║' , 'left-mid': '╟' , 'mid': '─' , 'mid-mid': '┼'
+                   , 'right': '║' , 'right-mid': '╢' , 'middle': '│' }
+          });
+          
+          let tableHeaders = [chalk.blueBright("Department"), chalk.blueBright("Total Labor Cost")];
+          table.push(tableHeaders);
+
+        
+        table.push([answer.deptName, res[0].sum_salary]);
+            
+        
+          let totalSum = table.toString();
+           console.log("");
+          console.log(totalSum);
+
+          initialQuestions();
+        
+    })
+})
+
 }
