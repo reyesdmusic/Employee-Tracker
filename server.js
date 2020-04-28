@@ -36,6 +36,8 @@ function initialQuestions() {
         choices: ["View all employees.",
         "View all employees by department.",
         "View all employees by manager.",
+        "Add a new employee.",
+        "Remove employee.",
             "Done"
         ]
     })
@@ -52,23 +54,32 @@ function initialQuestions() {
         else if (answer.initialChoice === "View all employees by manager.")  {
             viewByMgr();
         }
+
+        else if (answer.initialChoice === "Add a new employee.")  {
+            addEmp();
+        }
+
+        else if (answer.initialChoice === "Remove employee.")  {
+            removeEmp();
+        }
      
         else {
             clear();
+            connection.end()
         }
     });
 
 }
 
 function viewAllEmp() {
-
+    clear(); 
     
     connection.query("SELECT e.id, e.first_name, e.last_name, title, salary, name, m.first_name AS ? , m.last_name AS ? FROM employee e JOIN role r ON e.role_id = r.id JOIN department d ON r.department_id = d.id LEFT JOIN employee m on e.manager_id = m.id;", ["manager_first_name", "manager_last_name"], function (err, res) {
 
         if (err) throw err;
-        clear(); 
+       
 
-        var table = new Table({
+        var allEmpTable = new Table({
             chars: { 'top': '═' , 'top-mid': '╤' , 'top-left': '╔' , 'top-right': '╗'
                    , 'bottom': '═' , 'bottom-mid': '╧' , 'bottom-left': '╚' , 'bottom-right': '╝'
                    , 'left': '║' , 'left-mid': '╟' , 'mid': '─' , 'mid-mid': '┼'
@@ -76,13 +87,13 @@ function viewAllEmp() {
           });
           
           let tableHeaders = [chalk.blueBright("ID"), chalk.blueBright("First Name"), chalk.blueBright("Last Name"), chalk.blueBright("Title"), chalk.blueBright("Department"), chalk.blueBright("Salary"), chalk.blueBright("Manager")];
-          table.push(tableHeaders);
+          allEmpTable.push(tableHeaders);
 
           for (var i = 0; i < res.length; i++) {
-            table.push([res[i].id, res[i].first_name, res[i].last_name, res[i].title, res[i].name, res[i].salary, res[i].manager_first_name + " " + res[i].manager_last_name]);
+            allEmpTable.push([res[i].id, res[i].first_name, res[i].last_name, res[i].title, res[i].name, res[i].salary, res[i].manager_first_name + " " + res[i].manager_last_name]);
             }
         
-          let finalTable = table.toString();
+          let finalTable = allEmpTable.toString();
            console.log("");
           console.log(finalTable);
           initialQuestions();
@@ -93,6 +104,9 @@ function viewAllEmp() {
 }
 
 function viewByDept() {
+
+    clear();
+
     inquirer
     .prompt({
         name: "deptName",
@@ -113,7 +127,7 @@ function viewByDept() {
         if (err) throw err;
         clear(); 
 
-        var table = new Table({
+        var deptTable = new Table({
             chars: { 'top': '═' , 'top-mid': '╤' , 'top-left': '╔' , 'top-right': '╗'
                    , 'bottom': '═' , 'bottom-mid': '╧' , 'bottom-left': '╚' , 'bottom-right': '╝'
                    , 'left': '║' , 'left-mid': '╟' , 'mid': '─' , 'mid-mid': '┼'
@@ -121,15 +135,15 @@ function viewByDept() {
           });
           
           let tableHeaders = [chalk.blueBright("ID"), chalk.blueBright("First Name"), chalk.blueBright("Last Name"), chalk.blueBright("Title"), chalk.blueBright("Department"), chalk.blueBright("Salary"), chalk.blueBright("Manager")];
-          table.push(tableHeaders);
+          deptTable.push(tableHeaders);
 
           for (var i = 0; i < res.length; i++) {
-            table.push([res[i].id, res[i].first_name, res[i].last_name, res[i].title, res[i].name, res[i].salary, res[i].manager_first_name + " " + res[i].manager_last_name]);
+            deptTable.push([res[i].id, res[i].first_name, res[i].last_name, res[i].title, res[i].name, res[i].salary, res[i].manager_first_name + " " + res[i].manager_last_name]);
             }
         
-          let finalTable = table.toString();
+          let departmentTable = deptTable.toString();
            console.log("");
-          console.log(finalTable);
+          console.log(departmentTable);
           initialQuestions();
         
     })
@@ -138,6 +152,8 @@ function viewByDept() {
 }
 
 function viewByMgr() {
+
+    clear();
 
     connection.query("SELECT m.first_name AS ? , m.last_name AS ? , m.id FROM employee e JOIN role r ON e.role_id = r.id JOIN department d ON r.department_id = d.id LEFT JOIN employee m on e.manager_id = m.id GROUP BY m.id;", ["manager_first_name", "manager_last_name"], function (err, res) {
 
@@ -169,7 +185,7 @@ function viewByMgr() {
                     if (err) throw err;
         clear(); 
 
-        var table = new Table({
+        var managerTable = new Table({
             chars: { 'top': '═' , 'top-mid': '╤' , 'top-left': '╔' , 'top-right': '╗'
                    , 'bottom': '═' , 'bottom-mid': '╧' , 'bottom-left': '╚' , 'bottom-right': '╝'
                    , 'left': '║' , 'left-mid': '╟' , 'mid': '─' , 'mid-mid': '┼'
@@ -177,15 +193,15 @@ function viewByMgr() {
           });
           
           let tableHeaders = [chalk.blueBright("ID"), chalk.blueBright("First Name"), chalk.blueBright("Last Name"), chalk.blueBright("Title"), chalk.blueBright("Department"), chalk.blueBright("Salary"), chalk.blueBright("Manager")];
-          table.push(tableHeaders);
+          managerTable.push(tableHeaders);
 
           for (var i = 0; i < res.length; i++) {
-            table.push([res[i].id, res[i].first_name, res[i].last_name, res[i].title, res[i].name, res[i].salary, res[i].manager_first_name + " " + res[i].manager_last_name]);
+            managerTable.push([res[i].id, res[i].first_name, res[i].last_name, res[i].title, res[i].name, res[i].salary, res[i].manager_first_name + " " + res[i].manager_last_name]);
             }
         
-          let finalTable = table.toString();
+          let mgrTable = managerTable.toString();
            console.log("");
-          console.log(finalTable);
+          console.log(mgrTable);
           initialQuestions();
                     
                    
@@ -197,4 +213,146 @@ function viewByMgr() {
         
     })
 
+}
+
+function addEmp() {
+
+    clear();
+    connection.query("SELECT first_name, last_name, id FROM employee;", function (err, res) {
+
+        if (err) throw err;
+        let roleId = 0;
+        let newManagerId = 0;
+        let empIdArray = [];
+        let empNamesArray = [];
+        
+          for (var i = 0; i < res.length; i++) {
+       
+            empNamesArray.push(res[i].first_name + " " + res[i].last_name);
+            empIdArray.push(res[i].id);
+    
+        }
+    inquirer
+    .prompt([{
+        name: "empName",
+        type: "text",
+        message: "Enter employee's first name:",    
+    },
+    {
+        name: "empLastName",
+        type: "text",
+        message: "Enter employee's last name:",    
+    },
+    {
+        name: "empTitle",
+        type: "list",
+        message: "What is the employee's title?",
+        choices: ["Sales Person",
+        "Sales Lead",
+        "Software Engineer",
+        "Lead Engineer",
+        "Accountant",
+        "Account Manager",
+        "Junior Legal",
+        "Legal Team Lead"
+        ]   
+    },
+    {
+        name: "empManager",
+        type: "list",
+        message: "Who is the employee's Manager?",
+        choices: empNamesArray
+    }])
+    .then(function(answer){
+
+        for (var i = 0; i < empNamesArray.length; i++){
+            if (answer.empManager === empNamesArray[i]) {
+               newManagerId = empIdArray[i];   
+
+            }
+           
+        }
+     
+
+        if (answer.empTitle === "Sales Person") {
+            roleId = 1;
+        }
+
+        else if (answer.empTitle === "Sales Lead") {
+            roleId = 2;
+        }
+
+        else if (answer.empTitle === "Software Engineer") {
+            roleId = 3;
+        }
+
+        else if (answer.empTitle === "Lead Engineer") {
+            roleId = 4;
+        }
+
+        else if (answer.empTitle === "Accountant") {
+            roleId = 5;
+        }
+
+        else if (answer.empTitle === "Account Manager") {
+            roleId = 6;
+        }
+
+        else if (answer.empTitle === "Junior Legal") {
+            roleId = 7;
+        }
+
+        else if (answer.empTitle === "Legal Team Lead") {
+            roleId = 8;
+        }
+   
+        connection.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);", [answer.empName, answer.empLastName, roleId, newManagerId], function (err, res) {
+            if (err) throw err;
+            clear();
+            console.log(`"You've succesfully added ${answer.empName} ${answer.empLastName}"`)
+
+            initialQuestions();
+        })              
+    })
+})
+}
+
+function removeEmp() {
+    clear();
+    connection.query("SELECT first_name, last_name, id FROM employee;", function (err, res) {
+
+        if (err) throw err;
+        let empIdArray = [];
+        let empNamesArray = [];
+        
+          for (var i = 0; i < res.length; i++) {
+       
+            empNamesArray.push(res[i].first_name + " " + res[i].last_name);
+            empIdArray.push(res[i].id);
+    
+        }
+    inquirer
+    .prompt({
+        name: "removeThisEmp",
+        type: "list",
+        message: "Select employee to remove:",
+        choices: empNamesArray
+    })
+    .then(function(answer){
+
+        for (var i = 0; i < empNamesArray.length; i++){
+            if (answer.removeThisEmp === empNamesArray[i]) {
+               removeThisId = empIdArray[i];   
+            }         
+        }
+        connection.query("DELETE from employee where id = ?;", [removeThisId], function (err, res) {
+            if (err) throw err;
+            clear();
+            console.log(`"You've succesfully removed ${answer.removeThisEmp}."`)
+
+            initialQuestions();
+        })
+    })
+    
+})
 }
