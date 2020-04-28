@@ -33,12 +33,15 @@ function initialQuestions() {
         name: "initialChoice",
         type: "list",
         message: "Select one of the following",
-        choices: ["View all employees.",
+        choices: 
+        ["View all employees.",
         "View all employees by department.",
         "View all employees by manager.",
         "Add a new employee.",
         "Remove employee.",
-            "Done"
+        "Update employee role.",
+        "Update employee manager.",
+        "Done"
         ]
     })
     .then(function (answer) {
@@ -61,6 +64,14 @@ function initialQuestions() {
 
         else if (answer.initialChoice === "Remove employee.")  {
             removeEmp();
+        }
+
+        else if (answer.initialChoice === "Update employee role.")  {
+            updateRole();
+        }
+
+        else if (answer.initialChoice === "Update employee manager.")  {
+            updateManager();
         }
      
         else {
@@ -96,6 +107,7 @@ function viewAllEmp() {
           let finalTable = allEmpTable.toString();
            console.log("");
           console.log(finalTable);
+          
           initialQuestions();
         
     })
@@ -309,7 +321,8 @@ function addEmp() {
         connection.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);", [answer.empName, answer.empLastName, roleId, newManagerId], function (err, res) {
             if (err) throw err;
             clear();
-            console.log(`"You've succesfully added ${answer.empName} ${answer.empLastName}"`)
+            let success = chalk.greenBright(`You've succesfully added ${answer.empName} ${answer.empLastName}.`)
+            console.log(success)
 
             initialQuestions();
         })              
@@ -348,11 +361,157 @@ function removeEmp() {
         connection.query("DELETE from employee where id = ?;", [removeThisId], function (err, res) {
             if (err) throw err;
             clear();
-            console.log(`"You've succesfully removed ${answer.removeThisEmp}."`)
+            let success = chalk.greenBright(`You've succesfully removed ${answer.removeThisEmp}.`)
+            console.log(success)
 
             initialQuestions();
         })
     })
     
+})
+}
+
+function updateRole() {
+    clear(); 
+    connection.query("SELECT first_name, last_name, id FROM employee;", function (err, res) {
+
+        if (err) throw err;
+        let empIdArray = [];
+        let empNamesArray = [];
+        
+          for (var i = 0; i < res.length; i++) {
+       
+            empNamesArray.push(res[i].first_name + " " + res[i].last_name);
+            empIdArray.push(res[i].id);
+    
+        }
+    inquirer
+    .prompt({
+        name: "updateThisEmp",
+        type: "list",
+        message: "Select employee to update:",
+        choices: empNamesArray
+    })
+    .then(function(answer){
+        let selectedEmpName = answer.updateThisEmp;
+        for (var i = 0; i < empNamesArray.length; i++){
+            if (answer.updateThisEmp === empNamesArray[i]) {
+               updateThisId = empIdArray[i];   
+            }         
+        }
+        inquirer
+    .prompt({
+        name: "empTitle",
+        type: "list",
+        message: "What is the employee's title?",
+        choices: ["Sales Person",
+        "Sales Lead",
+        "Software Engineer",
+        "Lead Engineer",
+        "Accountant",
+        "Account Manager",
+        "Junior Legal",
+        "Legal Team Lead"
+        ]  
+    })
+    .then(function(answer){
+
+    if (answer.empTitle === "Sales Person") {
+        roleId = 1;
+    }
+
+    else if (answer.empTitle === "Sales Lead") {
+        roleId = 2;
+    }
+
+    else if (answer.empTitle === "Software Engineer") {
+        roleId = 3;
+    }
+
+    else if (answer.empTitle === "Lead Engineer") {
+        roleId = 4;
+    }
+
+    else if (answer.empTitle === "Accountant") {
+        roleId = 5;
+    }
+
+    else if (answer.empTitle === "Account Manager") {
+        roleId = 6;
+    }
+
+    else if (answer.empTitle === "Junior Legal") {
+        roleId = 7;
+    }
+
+    else if (answer.empTitle === "Legal Team Lead") {
+        roleId = 8;
+    }
+        connection.query("UPDATE employee set role_id = ? where id = ?;", [roleId, updateThisId], function (err, res) {
+            if (err) throw err;
+            clear();
+            let success = chalk.greenBright(`You've succesfully updated ${selectedEmpName}'s role to ${answer.empTitle}.`)
+            console.log(success)
+
+            initialQuestions();
+        })
+    })
+})
+})
+}
+
+function updateManager() {
+    clear(); 
+    connection.query("SELECT first_name, last_name, id FROM employee;", function (err, res) {
+
+        if (err) throw err;
+        let empIdArray = [];
+        let empNamesArray = [];
+        let setThisManagerId = 0;
+        
+          for (var i = 0; i < res.length; i++) {
+       
+            empNamesArray.push(res[i].first_name + " " + res[i].last_name);
+            empIdArray.push(res[i].id);
+    
+        }
+    inquirer
+    .prompt({
+        name: "updateThisEmp",
+        type: "list",
+        message: "Select employee to update:",
+        choices: empNamesArray
+    })
+    .then(function(answer){
+        let selectedEmpName = answer.updateThisEmp;
+        for (var i = 0; i < empNamesArray.length; i++){
+            if (answer.updateThisEmp === empNamesArray[i]) {
+               updateThisId = empIdArray[i];   
+            }         
+        }
+        inquirer
+    .prompt({
+        name: "newEmpManager",
+        type: "list",
+        message: "Who is the new manager?",
+        choices: empNamesArray
+    })
+    .then(function(answer){
+        for (var i = 0; i < empNamesArray.length; i++){
+            if (answer.newEmpManager === empNamesArray[i]) {
+               setThisManagerId = empIdArray[i];   
+            }         
+        }
+    
+        connection.query("UPDATE employee set manager_id = ? where id = ?;", [setThisManagerId, updateThisId], function (err, res) {
+            if (err) throw err;
+            clear();
+            let success = chalk.greenBright(`You've succesfully updated ${selectedEmpName}'s manager to ${answer.newEmpManager}.`)
+            console.log(success)
+
+            initialQuestions();
+        })
+    })
+})
 })
 }
