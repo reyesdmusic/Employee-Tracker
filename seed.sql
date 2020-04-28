@@ -63,54 +63,54 @@ VALUES ("Ignacio", "Barroso", 8);
 
 
 CREATE TABLE department (
-  id INT NOT NULL,
+  id INT NOT NULL AUTO_INCREMENT,
   name VARCHAR(30) NOT NULL,
   PRIMARY KEY (id)
 );
 
-INSERT INTO department (id, name)
-VALUES (1, "Sales");
+INSERT INTO department (name)
+VALUES ("Sales");
 
-INSERT INTO department (id, name)
-VALUES (2, "Legal");
+INSERT INTO department (name)
+VALUES ("Legal");
 
-INSERT INTO department (id, name)
-VALUES (3, "Finance");
+INSERT INTO department (name)
+VALUES ("Finance");
 
-INSERT INTO department (id, name)
-VALUES (4, "Engineering");
+INSERT INTO department (name)
+VALUES ("Engineering");
 
 CREATE TABLE role (
-  id INT NOT NULL,
+  id INT NOT NULL AUTO_INCREMENT,
   title VARCHAR(30) NOT NULL,
   salary DECIMAL(10, 2) NOT NULL,
   department_id INT NOT NULL,
   PRIMARY KEY (id)
 );
 
-INSERT INTO role (id, title, salary, department_id)
-VALUES (1, "Sales Person", 55000, 1);
+INSERT INTO role (title, salary, department_id)
+VALUES ("Sales Person", 55000, 1);
 
 INSERT INTO role (id, title, salary, department_id)
-VALUES (2, "Sales Lead", 65000, 1);
+VALUES ("Sales Lead", 65000, 1);
 
 INSERT INTO role (id, title, salary, department_id)
-VALUES (3, "Software Engineer", 65000, 4);
+VALUES ("Software Engineer", 65000, 4);
 
 INSERT INTO role (id, title, salary, department_id)
-VALUES (4, "Lead Engineer", 100000, 4);
+VALUES ("Lead Engineer", 100000, 4);
 
 INSERT INTO role (id, title, salary, department_id)
-VALUES (5, "Accountant", 70000, 3);
+VALUES ("Accountant", 70000, 3);
 
 INSERT INTO role (id, title, salary, department_id)
-VALUES (6, "Account Manager", 110000, 3);
+VALUES ("Account Manager", 110000, 3);
 
 INSERT INTO role (id, title, salary, department_id)
-VALUES (7, "Junior Legal", 100000, 2);
+VALUES ("Junior Legal", 100000, 2);
 
 INSERT INTO role (id, title, salary, department_id)
-VALUES (8, "Legal Team Lead", 150000, 2);
+VALUES ("Legal Team Lead", 150000, 2);
 
 
 

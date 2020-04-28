@@ -5,8 +5,6 @@ const clear = require('clear');
 const Table = require('cli-table');
 const chalk = require('chalk');
 
-
-
 var connection = mysql.createConnection({
     host: "localhost",
 
@@ -42,6 +40,10 @@ function initialQuestions() {
         "Update employee role.",
         "Update employee manager.",
         "See total labor cost by department.",
+        "Add a new role.",
+        "Add a new department.",
+        "Remove a role.",
+        "Remove a department.",
         "Done"
         ]
     })
@@ -78,7 +80,23 @@ function initialQuestions() {
         else if (answer.initialChoice === "See total labor cost by department.")  {
             laborCost();
         }
+
+        else if (answer.initialChoice === "Add a new role.")  {
+            addRole();
+        }
+
+        else if (answer.initialChoice === "Add a new department.")  {
+            addDepartment();
+        }
+
+        else if (answer.initialChoice === "Remove a role.")  {
+            removeRole();
+        }
      
+        else if (answer.initialChoice === "Remove a department.")  {
+            removeDepartment();
+        }
+
         else {
             clear();
             connection.end()
@@ -124,17 +142,27 @@ function viewByDept() {
 
     clear();
 
-    inquirer
-    .prompt({
-        name: "deptName",
-        type: "list",
-        message: "Ok, which department?",
-        choices: ["Sales",
-        "Engineering",
-            "Finance",
-            "Legal"
-        ]
-    })
+    connection.query("SELECT name FROM department;", function (err, res) {
+
+        if (err) throw err;
+      
+        let departmentArray = [];
+
+          for (var i = 0; i < res.length; i++) {
+          
+            departmentArray.push(res[i].name);
+            
+        }
+      
+        inquirer
+        .prompt({
+            name: "deptName",
+            type: "list",
+            message: "Ok, which department?",
+            choices: departmentArray
+            
+        })  
+
 
     .then(function (answer) {
 
@@ -165,6 +193,7 @@ function viewByDept() {
         
     })
 })
+    })
 
 }
 
@@ -249,6 +278,20 @@ function addEmp() {
             empIdArray.push(res[i].id);
     
         }
+    
+    connection.query("SELECT title, id FROM role;", function (err, res) {
+
+            if (err) throw err;
+          
+            let roleArray = [];
+            let roleIdArray = [];
+    
+              for (var i = 0; i < res.length; i++) {
+              
+                roleArray.push(res[i].title);
+                roleIdArray.push(res[i].id);
+                
+            }
     inquirer
     .prompt([{
         name: "empName",
@@ -264,15 +307,7 @@ function addEmp() {
         name: "empTitle",
         type: "list",
         message: "What is the employee's title?",
-        choices: ["Sales Person",
-        "Sales Lead",
-        "Software Engineer",
-        "Lead Engineer",
-        "Accountant",
-        "Account Manager",
-        "Junior Legal",
-        "Legal Team Lead"
-        ]   
+        choices: roleArray 
     },
     {
         name: "empManager",
@@ -289,38 +324,11 @@ function addEmp() {
             }
            
         }
-     
 
-        if (answer.empTitle === "Sales Person") {
-            roleId = 1;
-        }
-
-        else if (answer.empTitle === "Sales Lead") {
-            roleId = 2;
-        }
-
-        else if (answer.empTitle === "Software Engineer") {
-            roleId = 3;
-        }
-
-        else if (answer.empTitle === "Lead Engineer") {
-            roleId = 4;
-        }
-
-        else if (answer.empTitle === "Accountant") {
-            roleId = 5;
-        }
-
-        else if (answer.empTitle === "Account Manager") {
-            roleId = 6;
-        }
-
-        else if (answer.empTitle === "Junior Legal") {
-            roleId = 7;
-        }
-
-        else if (answer.empTitle === "Legal Team Lead") {
-            roleId = 8;
+        for (var i = 0; i < roleArray.length; i++){
+            if (answer.empTitle === roleArray[i]) {
+              roleId = roleIdArray[i];   
+            }         
         }
    
         connection.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);", [answer.empName, answer.empLastName, roleId, newManagerId], function (err, res) {
@@ -331,6 +339,7 @@ function addEmp() {
 
             initialQuestions();
         })              
+    })
     })
 })
 }
@@ -404,63 +413,46 @@ function updateRole() {
                updateThisId = empIdArray[i];   
             }         
         }
+     
+    connection.query("SELECT title, id FROM role;", function (err, res) {
+
+        if (err) throw err;
+      
+        let roleArray = [];
+        let roleIdArray = [];
+
+          for (var i = 0; i < res.length; i++) {
+          
+            roleArray.push(res[i].title);
+            roleIdArray.push(res[i].id);
+            
+        }
         inquirer
-    .prompt({
-        name: "empTitle",
-        type: "list",
-        message: "What is the employee's title?",
-        choices: ["Sales Person",
-        "Sales Lead",
-        "Software Engineer",
-        "Lead Engineer",
-        "Accountant",
-        "Account Manager",
-        "Junior Legal",
-        "Legal Team Lead"
-        ]  
-    })
+        .prompt({
+            name: "roleName",
+            type: "list",
+            message: "Ok, which role?",
+            choices: roleArray
+            
+        })  
+
     .then(function(answer){
-
-    if (answer.empTitle === "Sales Person") {
-        roleId = 1;
-    }
-
-    else if (answer.empTitle === "Sales Lead") {
-        roleId = 2;
-    }
-
-    else if (answer.empTitle === "Software Engineer") {
-        roleId = 3;
-    }
-
-    else if (answer.empTitle === "Lead Engineer") {
-        roleId = 4;
-    }
-
-    else if (answer.empTitle === "Accountant") {
-        roleId = 5;
-    }
-
-    else if (answer.empTitle === "Account Manager") {
-        roleId = 6;
-    }
-
-    else if (answer.empTitle === "Junior Legal") {
-        roleId = 7;
-    }
-
-    else if (answer.empTitle === "Legal Team Lead") {
-        roleId = 8;
-    }
+        for (var i = 0; i < roleArray.length; i++){
+            if (answer.roleName === roleArray[i]) {
+              roleId = roleIdArray[i];   
+            }         
+        }
+    
         connection.query("UPDATE employee set role_id = ? where id = ?;", [roleId, updateThisId], function (err, res) {
             if (err) throw err;
             clear();
-            let success = chalk.greenBright(`You've succesfully updated ${selectedEmpName}'s role to ${answer.empTitle}.`)
+            let success = chalk.greenBright(`You've succesfully updated ${selectedEmpName}'s role to ${answer.roleName}.`)
             console.log(success)
 
             initialQuestions();
         })
     })
+})
 })
 })
 }
@@ -525,17 +517,27 @@ function laborCost() {
 
     clear();
 
-    inquirer
-    .prompt({
-        name: "deptName",
-        type: "list",
-        message: "Ok, which department?",
-        choices: ["Sales",
-        "Engineering",
-            "Finance",
-            "Legal"
-        ]
-    })
+    connection.query("SELECT name FROM department;", function (err, res) {
+
+        if (err) throw err;
+      
+        let departmentArray = [];
+
+          for (var i = 0; i < res.length; i++) {
+          
+            departmentArray.push(res[i].name);
+            
+        }
+       
+        inquirer
+        .prompt({
+            name: "deptName",
+            type: "list",
+            message: "Ok, which department?",
+            choices: departmentArray
+            
+        })  
+
 
     .then(function (answer) {
 
@@ -568,4 +570,175 @@ function laborCost() {
     })
 })
 
+})
+
+}
+
+function addRole() {
+    clear();
+    connection.query("SELECT name, id FROM department;", function (err, res) {
+
+        if (err) throw err;
+      
+        let departmentArray = [];
+        let departmentIdArray = [];
+        
+
+          for (var i = 0; i < res.length; i++) {
+          
+            departmentArray.push(res[i].name);
+            departmentIdArray.push(res[i].id);
+        }
+      
+        inquirer
+        .prompt([{
+            name: "roleName",
+            type: "text",
+            message: "Enter Title for the new role:", 
+        },
+        {
+            name: "roleSalary",
+            type: "number",
+            message: "Enter Salary for the new role:", 
+        },
+        {
+            name: "deptName",
+            type: "list",
+            message: "Which department does this role belong to?",
+            choices: departmentArray    
+        },
+    ])
+    .then(function (answer) {
+        let selectedDepartment = answer.deptName;
+        for (var i = 0; i < departmentArray.length; i++){
+            if (answer.deptName === departmentArray[i]) {
+               updateThisDepartmentId = departmentIdArray[i];   
+            }         
+        }
+      
+    connection.query("INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?);", [answer.roleName, answer.roleSalary, updateThisDepartmentId], function (err, res) {
+
+        if (err) throw err;
+
+        clear();
+        let success = chalk.greenBright(`You've succesfully added ${answer.roleName}.`)
+        console.log(success)
+
+        initialQuestions();
+      
+      
+}) //insert into role query
+    }) // .then
+    }) //main query
+} //main function
+
+function addDepartment() {
+    clear();
+  
+        inquirer
+        .prompt({
+            name: "departmentName",
+            type: "text",
+            message: "Enter Department name:", 
+        })
+    .then(function (answer) {
+        let selectedDepartment = answer.departmentName;
+  
+      
+    connection.query("INSERT INTO department (name) VALUES (?);", [answer.departmentName], function (err, res) {
+
+        if (err) throw err;
+
+        clear();
+        let success = chalk.greenBright(`You've succesfully added ${selectedDepartment}.`)
+        console.log(success)
+
+        initialQuestions();
+      
+      
+}) //insert into role query
+    }) // .then
+   
+} //main function
+
+function removeRole() {
+    clear();
+    connection.query("SELECT title, id FROM role;", function (err, res) {
+
+        if (err) throw err;
+        let roleIdArray = [];
+        let roleNamesArray = [];
+        
+          for (var i = 0; i < res.length; i++) {
+       
+            roleNamesArray.push(res[i].title);
+            roleIdArray.push(res[i].id);
+    
+        }
+    inquirer
+    .prompt({
+        name: "removeThisRole",
+        type: "list",
+        message: "Select role to remove:",
+        choices: roleNamesArray
+    })
+    .then(function(answer){
+
+        for (var i = 0; i < roleNamesArray.length; i++){
+            if (answer.removeThisRole === roleNamesArray[i]) {
+               removeThisId = roleIdArray[i];   
+            }         
+        }
+        connection.query("DELETE from role where id = ?;", [removeThisId], function (err, res) {
+            if (err) throw err;
+            clear();
+            let success = chalk.greenBright(`You've succesfully removed ${answer.removeThisRole}.`)
+            console.log(success)
+
+            initialQuestions();
+        })
+    })
+    
+})
+}
+
+function removeDepartment() {
+    clear();
+    connection.query("SELECT name, id FROM department;", function (err, res) {
+
+        if (err) throw err;
+        let departmentIdArray = [];
+        let departmentNamesArray = [];
+        
+          for (var i = 0; i < res.length; i++) {
+       
+            departmentNamesArray.push(res[i].name);
+            departmentIdArray.push(res[i].id);
+    
+        }
+    inquirer
+    .prompt({
+        name: "removeThisDepartment",
+        type: "list",
+        message: "Select department to remove:",
+        choices: departmentNamesArray
+    })
+    .then(function(answer){
+
+        for (var i = 0; i < departmentNamesArray.length; i++){
+            if (answer.removeThisDepartment === departmentNamesArray[i]) {
+               removeThisId = departmentIdArray[i];   
+            }         
+        }
+        connection.query("DELETE from department where id = ?;", [removeThisId], function (err, res) {
+            if (err) throw err;
+            clear();
+            let success = chalk.greenBright(`You've succesfully removed ${answer.removeThisDepartment}.`)
+            console.log(success)
+
+            initialQuestions();
+        })
+    })
+    
+})
 }
