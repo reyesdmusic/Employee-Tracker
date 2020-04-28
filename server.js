@@ -4,6 +4,7 @@ var inquirer = require("inquirer");
 const clear = require('clear');
 const Table = require('cli-table');
 const chalk = require('chalk');
+const joi = require("joi");
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -16,7 +17,6 @@ var connection = mysql.createConnection({
 
     database: "employeesDB"
 });
-
 
 connection.connect(function (err) {
     if (err) throw err;
@@ -35,6 +35,8 @@ function initialQuestions() {
         ["View all employees.",
         "View all employees by department.",
         "View all employees by manager.",
+        "View all departments.",
+        "View all roles.",
         "Add a new employee.",
         "Remove employee.",
         "Update employee role.",
@@ -97,6 +99,14 @@ function initialQuestions() {
             removeDepartment();
         }
 
+        else if (answer.initialChoice === "View all departments.")  {
+            viewDepartments();
+        }
+
+        else if (answer.initialChoice === "View all roles.")  {
+            viewRoles();
+        }
+
         else {
             clear();
             connection.end()
@@ -120,7 +130,7 @@ function viewAllEmp() {
                    , 'right': '║' , 'right-mid': '╢' , 'middle': '│' }
           });
           
-          let tableHeaders = [chalk.blueBright("ID"), chalk.blueBright("First Name"), chalk.blueBright("Last Name"), chalk.blueBright("Title"), chalk.blueBright("Department"), chalk.blueBright("Salary"), chalk.blueBright("Manager")];
+          let tableHeaders = [chalk.blueBright.bold("ID"), chalk.blueBright.bold("First Name"), chalk.blueBright.bold("Last Name"), chalk.blueBright.bold("Title"), chalk.blueBright.bold("Department"), chalk.blueBright.bold("Salary"), chalk.blueBright.bold("Manager")];
           allEmpTable.push(tableHeaders);
 
           for (var i = 0; i < res.length; i++) {
@@ -179,7 +189,7 @@ function viewByDept() {
                    , 'right': '║' , 'right-mid': '╢' , 'middle': '│' }
           });
           
-          let tableHeaders = [chalk.blueBright("ID"), chalk.blueBright("First Name"), chalk.blueBright("Last Name"), chalk.blueBright("Title"), chalk.blueBright("Department"), chalk.blueBright("Salary"), chalk.blueBright("Manager")];
+          let tableHeaders = [chalk.blueBright.bold("ID"), chalk.blueBright.bold("First Name"), chalk.blueBright.bold("Last Name"), chalk.blueBright.bold("Title"), chalk.blueBright.bold("Department"), chalk.blueBright.bold("Salary"), chalk.blueBright.bold("Manager")];
           deptTable.push(tableHeaders);
 
           for (var i = 0; i < res.length; i++) {
@@ -238,7 +248,7 @@ function viewByMgr() {
                    , 'right': '║' , 'right-mid': '╢' , 'middle': '│' }
           });
           
-          let tableHeaders = [chalk.blueBright("ID"), chalk.blueBright("First Name"), chalk.blueBright("Last Name"), chalk.blueBright("Title"), chalk.blueBright("Department"), chalk.blueBright("Salary"), chalk.blueBright("Manager")];
+          let tableHeaders = [chalk.blueBright.bold("ID"), chalk.blueBright.bold("First Name"), chalk.blueBright.bold("Last Name"), chalk.blueBright.bold("Title"), chalk.blueBright.bold("Department"), chalk.blueBright.bold("Salary"), chalk.blueBright.bold("Manager")];
           managerTable.push(tableHeaders);
 
           for (var i = 0; i < res.length; i++) {
@@ -269,13 +279,13 @@ function addEmp() {
         if (err) throw err;
         let roleId = 0;
         let newManagerId = 0;
-        let empIdArray = [];
-        let empNamesArray = [];
+        let managerIdArray = ["NULL"];
+        let managerNamesArray = ["None"];
         
           for (var i = 0; i < res.length; i++) {
        
-            empNamesArray.push(res[i].first_name + " " + res[i].last_name);
-            empIdArray.push(res[i].id);
+            managerNamesArray.push(res[i].first_name + " " + res[i].last_name);
+            managerIdArray.push(res[i].id);
     
         }
     
@@ -296,12 +306,14 @@ function addEmp() {
     .prompt([{
         name: "empName",
         type: "text",
-        message: "Enter employee's first name:",    
+        message: "Enter employee's first name:", 
+        validate: validateString   
     },
     {
         name: "empLastName",
         type: "text",
-        message: "Enter employee's last name:",    
+        message: "Enter employee's last name:",
+        validate: validateString    
     },
     {
         name: "empTitle",
@@ -313,24 +325,35 @@ function addEmp() {
         name: "empManager",
         type: "list",
         message: "Who is the employee's Manager?",
-        choices: empNamesArray
+        choices: managerNamesArray
     }])
     .then(function(answer){
 
-        for (var i = 0; i < empNamesArray.length; i++){
-            if (answer.empManager === empNamesArray[i]) {
-               newManagerId = empIdArray[i];   
-
-            }
-           
-        }
-
+    
         for (var i = 0; i < roleArray.length; i++){
             if (answer.empTitle === roleArray[i]) {
               roleId = roleIdArray[i];   
             }         
         }
-   
+
+        for (var i = 0; i < managerNamesArray.length; i++){
+            if (answer.empManager === managerNamesArray[i]) {
+               newManagerId = managerIdArray[i];   
+
+            }
+           
+        }
+        if(newManagerId === "NULL"){
+            connection.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, NULL)", [answer.empName, answer.empLastName, roleId], function (err, res) {
+                if (err) throw err;
+                clear();
+                let success = chalk.greenBright(`You've succesfully added ${answer.empName} ${answer.empLastName}.`)
+                console.log(success)
+    
+                initialQuestions();
+            })
+        }
+        else {
         connection.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);", [answer.empName, answer.empLastName, roleId, newManagerId], function (err, res) {
             if (err) throw err;
             clear();
@@ -338,7 +361,8 @@ function addEmp() {
             console.log(success)
 
             initialQuestions();
-        })              
+        })  
+    }            
     })
     })
 })
@@ -464,14 +488,21 @@ function updateManager() {
         if (err) throw err;
         let empIdArray = [];
         let empNamesArray = [];
+        let managerIdArray = ["NULL"];
+        let managerNamesArray = ["None"];
         let setThisManagerId = 0;
         
           for (var i = 0; i < res.length; i++) {
        
             empNamesArray.push(res[i].first_name + " " + res[i].last_name);
             empIdArray.push(res[i].id);
+            managerNamesArray.push(res[i].first_name + " " + res[i].last_name);
+            managerIdArray.push(res[i].id);
     
         }
+
+        
+
     inquirer
     .prompt({
         name: "updateThisEmp",
@@ -491,15 +522,25 @@ function updateManager() {
         name: "newEmpManager",
         type: "list",
         message: "Who is the new manager?",
-        choices: empNamesArray
+        choices: managerNamesArray
     })
     .then(function(answer){
-        for (var i = 0; i < empNamesArray.length; i++){
-            if (answer.newEmpManager === empNamesArray[i]) {
-               setThisManagerId = empIdArray[i];   
+        for (var i = 0; i < managerNamesArray.length; i++){
+            if (answer.newEmpManager === managerNamesArray[i]) {
+               setThisManagerId = managerIdArray[i];   
             }         
         }
-    
+    if(setThisManagerId === "NULL"){
+        connection.query("UPDATE employee set manager_id = NULL where id = ?;", [updateThisId], function (err, res) {
+            if (err) throw err;
+            clear();
+            let success = chalk.greenBright(`You've succesfully updated ${selectedEmpName}'s manager to none.`)
+            console.log(success)
+
+            initialQuestions();
+        })
+    }
+    else {
         connection.query("UPDATE employee set manager_id = ? where id = ?;", [setThisManagerId, updateThisId], function (err, res) {
             if (err) throw err;
             clear();
@@ -508,6 +549,7 @@ function updateManager() {
 
             initialQuestions();
         })
+    }
     })
 })
 })
@@ -554,7 +596,7 @@ function laborCost() {
                    , 'right': '║' , 'right-mid': '╢' , 'middle': '│' }
           });
           
-          let tableHeaders = [chalk.blueBright("Department"), chalk.blueBright("Total Labor Cost")];
+          let tableHeaders = [chalk.magenta.bold("Department"), chalk.magenta.bold("Total Labor Cost")];
           table.push(tableHeaders);
 
         
@@ -594,12 +636,14 @@ function addRole() {
         .prompt([{
             name: "roleName",
             type: "text",
-            message: "Enter Title for the new role:", 
+            message: "Enter Title for the new role:",
+            validate: validateString 
         },
         {
             name: "roleSalary",
-            type: "number",
+            type: "input",
             message: "Enter Salary for the new role:", 
+            validate: validateNumber
         },
         {
             name: "deptName",
@@ -640,6 +684,7 @@ function addDepartment() {
             name: "departmentName",
             type: "text",
             message: "Enter Department name:", 
+            validate: validateString
         })
     .then(function (answer) {
         let selectedDepartment = answer.departmentName;
@@ -742,3 +787,87 @@ function removeDepartment() {
     
 })
 }
+
+function viewDepartments() {
+    clear(); 
+    
+    connection.query("SELECT name FROM department;", function (err, res) {
+
+        if (err) throw err;
+       
+
+        var table = new Table({
+            chars: { 'top': '═' , 'top-mid': '╤' , 'top-left': '╔' , 'top-right': '╗'
+                   , 'bottom': '═' , 'bottom-mid': '╧' , 'bottom-left': '╚' , 'bottom-right': '╝'
+                   , 'left': '║' , 'left-mid': '╟' , 'mid': '─' , 'mid-mid': '┼'
+                   , 'right': '║' , 'right-mid': '╢' , 'middle': '│' }
+          });
+          
+          let tableHeaders = [chalk.magenta.bold("Department Name")];
+          table.push(tableHeaders);
+
+          for (var i = 0; i < res.length; i++) {
+            table.push([res[i].name]);
+            }
+        
+          let finalTable = table.toString();
+           console.log("");
+          console.log(finalTable);
+          
+          initialQuestions();
+        
+    })
+}
+
+function viewRoles() {
+    clear(); 
+    
+    connection.query("SELECT title FROM role;", function (err, res) {
+
+        if (err) throw err;
+       
+
+        var table = new Table({
+            chars: { 'top': '═' , 'top-mid': '╤' , 'top-left': '╔' , 'top-right': '╗'
+                   , 'bottom': '═' , 'bottom-mid': '╧' , 'bottom-left': '╚' , 'bottom-right': '╝'
+                   , 'left': '║' , 'left-mid': '╟' , 'mid': '─' , 'mid-mid': '┼'
+                   , 'right': '║' , 'right-mid': '╢' , 'middle': '│' }
+          });
+          
+          let tableHeaders = [chalk.magenta.bold("Role Title")];
+          table.push(tableHeaders);
+
+          for (var i = 0; i < res.length; i++) {
+            table.push([res[i].title]);
+            }
+        
+          let finalTable = table.toString();
+           console.log("");
+          console.log(finalTable);
+          
+          initialQuestions();
+        
+    })
+
+  
+}
+
+function validateNumber(name) {
+    let schema = joi.number().required();
+    return joi.validate(name, schema, onValidation);
+ }
+ 
+ 
+ function onValidation(err, val){
+     if(err) {
+         return err.message;
+     }
+     else {
+         return true;
+     }
+ }
+ 
+ function validateString(name) {
+     var schema = joi.string().required();
+     return joi.validate(name, schema, onValidation);
+ }
