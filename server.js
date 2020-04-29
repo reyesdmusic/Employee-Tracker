@@ -674,7 +674,7 @@ function addRole() {
 }) //insert into role query
     }) // .then
     }) //main query
-} //main function
+} 
 
 function addDepartment() {
     clear();
@@ -704,7 +704,7 @@ function addDepartment() {
 }) //insert into role query
     }) // .then
    
-} //main function
+} 
 
 function removeRole() {
     clear();
